@@ -4,11 +4,12 @@ import pandas as pd
 
 sys.path.append('%s/../' % os.path.dirname(__file__))
 
-from utils.date import date_ymd
+from utils.date import date_ymd, today
 from utils.fileSys import makeDir
+from utils.pandas_util import condense
 
-HEADERS = ['Publisher', 'UPC', 'DCD', 'ISBN', 'Issue', 'Date', 'Copies']
-INDICES = ['Publisher', 'UPC', 'Issue']
+HEADERS = ['UPC', 'Issue', 'Publisher', 'Date', 'Copies']  # 'DCD', 'ISBN'
+INDICES = ['UPC', 'Issue', 'Publisher']
 
 
 def cold_store(date, df):
@@ -48,5 +49,10 @@ def append_today(df):
         fa.write(df_str)
 
 
-def today_store():
-    pass
+def export_today():
+    """ Condense duplicates over the day, and save to cold store. """
+    df = condense(pd.read_csv(get_today_csv()), 'Copies')
+    path = get_day_csv(today())
+    if os.path.exists(path):
+        raise Exception("This day was already exported! Delete the old one, or don't run this.")
+    df.to_csv(path)
